@@ -9,7 +9,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      ANDROID_SDK_ROOT: ${{ runner.temp }}/android-sdk
+run: wget -O ${{ env.GITHUB_WORKSPACE }}/my-file.txt https://example.com/file.txt
     steps:
       - uses: actions/checkout@v4
 
