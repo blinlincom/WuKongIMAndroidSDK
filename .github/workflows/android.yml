@@ -1,4 +1,5 @@
 name: Android CI
+
 on:
   push:
     branches: [ "master" ]
@@ -8,8 +9,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    
     env:
-      run: wget -O ${{ env.GITHUB_WORKSPACE }}/my-file.txt https://example.com/file.txt
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+    
     steps:
       - uses: actions/checkout@v4
 
@@ -26,25 +29,22 @@ jobs:
             ~/.gradle/caches
             ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
 
-      - name: Install Android SDK commandline tools
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install specific Android SDK components
         run: |
-          sudo apt-get update
-          sudo apt-get install -y wget unzip
-          mkdir -p $ANDROID_SDK_ROOT/cmdline-tools
-          cd $ANDROID_SDK_ROOT
-          # 下面的 URL 可根据需要换成较新的 commandlinetools zip
-          wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdline-tools.zip
-          unzip -q cmdline-tools.zip -d cmdline-tools
-          mkdir -p $ANDROID_SDK_ROOT/cmdline-tools/latest
-          mv cmdline-tools/cmdline-tools/* $ANDROID_SDK_ROOT/cmdline-tools/latest/ || true
-          yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "platform-tools" "platforms;android-33" "build-tools;33.0.2"
+          yes | sdkmanager --sdk_root=$ANDROID_SDK_ROOT "platform-tools" "platforms;android-33" "build-tools;33.0.2"
 
       - name: Accept SDK licenses
         run: |
           mkdir -p $ANDROID_SDK_ROOT/licenses
-          # 一般把常见许可写入（如果你项目需要其他许可，可能需要追加）
           echo "8933bad161af4178b1185d1a37fbf41ea5269c55" > $ANDROID_SDK_ROOT/licenses/android-sdk-license
+          echo "d56f5187479451eabf01fb78af6dfcb131a6481e" >> $ANDROID_SDK_ROOT/licenses/android-sdk-license
+          echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" >> $ANDROID_SDK_ROOT/licenses/android-sdk-license
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
